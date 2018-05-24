@@ -55,6 +55,12 @@ resource "teamcity_build_config" "buildrelease" {
   }
 }
 
+resource "teamcity_trigger" "buildrelease_vcs_trigger" {
+  build_config_id = "${teamcity_build_config.buildrelease.id}"
+  rules           = "+:*"
+  branch_filter   = "+:pull/*"
+}
+
 resource "teamcity_build_config" "release_testing" {
   project_id  = "${teamcity_project.project.id}"
   name        = "Release To Testing"
@@ -145,12 +151,6 @@ resource "teamcity_snapshot_dependency" "production_chain" {
   build_config_id        = "${teamcity_build_config.release_production.id}"
 }
 
-resource "teamcity_trigger" "buildrelease_vcs_trigger" {
-  build_config_id = "${teamcity_build_config.buildrelease.id}"
-  rules           = "+:*"
-  branch_filter   = "+:pull/*"
-}
-
 resource "teamcity_agent_requirement" "aws_agent_requirement" {
   // Count cannot be computed :(
   count           = 4
@@ -159,4 +159,16 @@ resource "teamcity_agent_requirement" "aws_agent_requirement" {
   condition = "equals"
   name      = "teamcity.agent.datacenter"
   value     = "aws"
+}
+
+output "pull_request_configuration_id" {
+  value = "${teamcity_build_config.pullrequest.id}"
+}
+
+output "build_release_configuration_id" {
+  value = "${teamcity_build_config.buildrelease.id}"
+}
+
+output "project_id" {
+  value = "${teamcity_project.project.id}"
 }
